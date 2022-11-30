@@ -1378,10 +1378,10 @@ export class GuiTextBox {
                             this.insert_char("}", e);
                             break;
                         case ("Period"):
-                            this.insert_char("<", e);
+                            this.insert_char(">", e);
                             break;
                         case ("Comma"):
-                            this.insert_char(">", e);
+                            this.insert_char("<", e);
                             break;
                         default:
                             let letter = e.code.substring(e.code.length - 1);

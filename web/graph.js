@@ -138,7 +138,6 @@ class Function {
                 const dx = (x_max - x_min) / cells_x;
                 const dy = (y_max - y_min) / cells_y;
                 this.dx = dx;
-                this.table.splice(0, this.table.length);
                 let min_z = (this.compiled(x_min, y_min, this.dx));
                 let max_z = min_z;
                 const iterations_x = cells_x;
@@ -230,7 +229,7 @@ class Game extends SquareAABBCollidable {
         this.y_translation = 0;
         this.graph_start_x = 200;
         const whratio = width / (height > 0 ? height : width);
-        const rough_dim = getWidth() / 2;
+        const rough_dim = Math.floor(getWidth() * 3 / 4);
         this.background_color = new RGB(0, 0, 0, 0);
         this.cell_dim = [rough_dim, Math.floor(rough_dim * whratio)];
         this.init(this.cell_dim[0], this.cell_dim[1], this.cell_dim[0], this.cell_dim[1]);
