@@ -180,19 +180,21 @@ class Function {
             y3))/dxsq*dxsq);
        
     }
-    calc_for(view:Int32Array, x_min:number, x_max:number, dx:number, y_min:number, y_max:number, dy:number):number[]
+    calc_for(view:Int32Array, x_min:number, x_max:number, cells_x:number, y_min:number, y_max:number, cells_y:number):number[]
     {
         if(this.error_message === null)
         {
             try {
                 this.x_max = x_max;
                 this.x_min = x_min;
+                const dx = (x_max - x_min) / cells_x;
+                const dy = (y_max - y_min) / cells_y;
                 this.dx = dx;
                 this.table.splice(0, this.table.length);
                 let min_z = (this.compiled(x_min, y_min, this.dx));
                 let max_z = min_z;
-                const iterations_x = Math.floor((this.x_max - this.x_min) / this.dx);
-                const iterations_y = Math.floor((y_max - y_min) / dy);
+                const iterations_x = cells_x;
+                const iterations_y = cells_y;
                 if(this.table.length !== iterations_x * iterations_y)
                 {
                     this.table = [];
@@ -214,19 +216,20 @@ class Function {
                     }
                 }
                 const delta_z = max_z - min_z;
-                const half_delta_z = delta_z / 2;
                 const color:RGB = new RGB(0, 0, 0, 255);
                 for(let i = 0; i < view.length; i++)
                 {
                     const normalized_z = (this.table[i] - min_z) / delta_z;
                     if(normalized_z < 0.5)
                     {
-                        color.setBlue((1 - normalized_z) * 2 * 255);
+                        const blue = (1 - normalized_z) * 2 * 255;
+                        color.setBlue(blue);
                         color.setRed(0);
                     }
                     else
                     {
-                        color.setRed((normalized_z - 0.5) * 2 * 255);
+                        const red = (normalized_z - 0.5) * 2 * 255;
+                        color.setRed(red);
                         color.setBlue(0);
                     }
                     view[i] = color.color;
@@ -317,7 +320,7 @@ class Game extends SquareAABBCollidable {
         this.y_translation = 0;
         this.graph_start_x = 200;
         const whratio = width / (height > 0 ? height : width);
-        const rough_dim = Math.floor(getWidth() / 4);
+        const rough_dim = getWidth() / 2;
         this.background_color = new RGB(0, 0, 0, 0);
         this.cell_dim = [rough_dim, Math.floor(rough_dim * whratio)];
         this.init(this.cell_dim[0], this.cell_dim[1], this.cell_dim[0], this.cell_dim[1]);
@@ -458,7 +461,7 @@ class Game extends SquareAABBCollidable {
             if(this.layer_manager.list.list[index] && this.layer_manager.list.list[index].checkBox.checked)
             {
                 //build table to be rendered
-                foo.calc_for(view, this.x_min, this.x_max, (this.deltaX) / this.cell_dim[0], this.y_min, this.y_max, this.deltaY / this.cell_dim[1]);
+                foo.calc_for(view, this.x_min, this.x_max, this.cell_dim[0], this.y_min, this.y_max, this.cell_dim[1]);
                 //render table to main buffer
                 let last_x = 0;
                 let last_y = ((-foo.table[0] - this.y_min) / this.deltaY) * this.cell_dim[1];

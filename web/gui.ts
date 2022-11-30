@@ -1766,6 +1766,12 @@ export class GuiTextBox implements GuiElement {
                     case("BracketRight"):
                     this.insert_char("}", e);
                     break;
+                    case("Period"):
+                    this.insert_char("<", e);
+                    break;
+                    case("Comma"):
+                    this.insert_char(">", e);
+                    break;
                     default:
                         let letter:string = e.code.substring(e.code.length - 1);
                         if((<any> GuiTextBox.textLookup)[e.code] || (<any> GuiTextBox.numbers)[e.code])
