@@ -588,7 +588,7 @@ async function main() {
             height = getHeight();
             canvas.width = width;
             canvas.height = height;
-            game.init(width, height - 50, Math.floor(getWidth() * 3 / 4), height * 3 / 4 - 50);
+            game.init(width, height - 50, Math.floor(getWidth() * 3 / 4), Math.floor(height * 3 / 4 - 50));
         }
         dt = Date.now() - start;
         time_queue.push(dt);
