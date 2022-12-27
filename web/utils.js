@@ -1,4 +1,70 @@
 ;
+export class ProcessPool {
+    constructor(poolSize, main, library_code, modules) {
+        this.workers = [];
+        this.worker_free_list = [];
+        this.modules = modules;
+        this.input_queue = new Queue();
+        const stringified_code = modules.map((pm) => {
+            return `import {${pm.fields.join(',')}} from '${pm.path}'\n`;
+        }).concat(library_code.map(foo => `const ${foo.name} = ${foo.toString()}`).concat(["\nconst main = ", main.toString(), ";\n", `self.onmessage = (event) => {const data = main(event.data.data); postMessage({process_id:event.data.process_id, data:data}); }`]));
+        console.log(stringified_code.join(''));
+        this.code_url = window.URL.createObjectURL(new Blob(stringified_code, {
+            type: "text/javascript"
+        }));
+        for (let i = 0; i < poolSize; i++) {
+            this.worker_free_list.push(i);
+            this.workers.push(this.createWorker());
+        }
+    }
+    createWorker() {
+        const worker = new Worker(this.code_url);
+        return worker;
+    }
+    async call_parallel(data) {
+        const process_id = this.worker_free_list.pop();
+        if (process_id === undefined) {
+            await sleep(1);
+            const try_again = new Promise((resolve) => {
+                resolve(this.call_parallel(data));
+            });
+            return try_again;
+        }
+        const worker = this.workers[process_id];
+        //return promise that will resolve to worker result
+        const promise = new Promise((resolve) => {
+            worker.onmessage = (event) => {
+                this.worker_free_list.push(event.data.process_id);
+                console.log("thread id:", event.data.process_id);
+                //console.log(event.data.data);
+                resolve(event.data.data);
+            };
+        });
+        worker.postMessage({
+            data: data,
+            process_id: process_id
+        });
+        return promise;
+    }
+    batch_call_parallel(data) {
+        const input_queue = new Queue();
+        for (let i = 0; i < data.length; i++) {
+            const rec = data[i];
+            input_queue.push(this.call_parallel(rec));
+        }
+        const promise = new Promise(async (resolve) => {
+            const final_result = [];
+            while (input_queue.length) {
+                const result = await input_queue.pop();
+                final_result.push(result);
+            }
+            resolve(final_result);
+        });
+        return promise;
+    }
+}
+;
+;
 export function sign(val) {
     return val < 0 ? -1 : 1;
 }

@@ -163,15 +163,11 @@ class Function {
                 const color = new RGB(0, 0, 0, 255);
                 for (let i = 0; i < view.length; i++) {
                     const normalized_z = (this.table[i] - min_z) / delta_z;
-                    if (normalized_z < 0.5) {
-                        const blue = (1 - normalized_z) * 2 * 255;
-                        color.setBlue(blue);
-                        color.setRed(0);
-                    }
-                    else {
-                        const red = (normalized_z - 0.5) * 2 * 255;
-                        color.setRed(red);
-                        color.setBlue(0);
+                    {
+                        const red = normalized_z * 255;
+                        color.setRed(red / 2);
+                        color.setBlue(red);
+                        color.setGreen(32 - red / 8);
                     }
                     view[i] = color.color;
                 }
@@ -398,14 +394,19 @@ class Game extends SquareAABBCollidable {
         ctx.strokeRect(screen_x - dim / 2, screen_y - dim / 2, dim, dim);
         let text;
         const decimal = Math.abs(world_x) < 1 << 16 && Math.abs(world_x) > Math.pow(2, -20) || Math.abs(world_x) < Math.pow(2, -35);
-        text = `x: ${decimal ? round_with_precision(world_x, precision + 2) : world_x.toExponential(precision)} y: ${decimal ? round_with_precision(world_y, precision + 2) : world_y.toExponential(precision)}`;
-        const text_width = ctx.measureText(text).width;
-        if (text_width + screen_x + dim > this.width) {
-            screen_x -= text_width + dim * 2;
-            screen_y += 3;
+        try {
+            text = `x: ${decimal ? round_with_precision(world_x, precision + 2) : world_x.toExponential(precision)} y: ${decimal ? round_with_precision(world_y, precision + 2) : world_y.toExponential(precision)}`;
+            const text_width = ctx.measureText(text).width;
+            if (text_width + screen_x + dim > this.width) {
+                screen_x -= text_width + dim * 2;
+                screen_y += 3;
+            }
+            ctx.fillText(text, screen_x + dim, screen_y + dim / 2 + offset_y);
+            ctx.strokeText(text, screen_x + dim, screen_y + dim / 2 + offset_y);
         }
-        ctx.fillText(text, screen_x + dim, screen_y + dim / 2 + offset_y);
-        ctx.strokeText(text, screen_x + dim, screen_y + dim / 2 + offset_y);
+        catch (error) {
+            console.log(error.message);
+        }
     }
     format_number(value, precision = 2) {
         const dim = 10;
@@ -588,7 +589,7 @@ async function main() {
             height = getHeight();
             canvas.width = width;
             canvas.height = height;
-            game.init(width, height - 50, Math.floor(getWidth() * 3 / 4), Math.floor(height * 3 / 4 - 50));
+            game.init(width, height - 50, Math.floor(getWidth() * 1 / 2), Math.floor(height * 1 / 2));
         }
         dt = Date.now() - start;
         time_queue.push(dt);
