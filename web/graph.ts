@@ -223,7 +223,7 @@ class Function {
                         const red = normalized_z * 255;
                         color.setRed(red/2);
                         color.setBlue(red);
-                        color.setGreen(32-red/8);
+                        color.setGreen(this.table[i] < 0 ? 255 * normalized_z : 0);
                     }
                     view[i] = color.color;
                 }
